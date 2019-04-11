@@ -33,6 +33,13 @@ where
     return num;
 }
 
+pub fn float_color_from_bytes(r: u8, g: u8, b: u8) -> Vector3D {
+    return Vector3D::new(
+        r as f32 / 255.0,
+        g as f32 / 255.0,
+        b as f32 / 255.0
+    );
+}
 
 pub fn color_to_u32(c: &Vector3D) -> u32 {
     let r: u32 = (c.x * 255.0) as u32;

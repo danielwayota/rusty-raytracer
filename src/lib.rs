@@ -43,7 +43,7 @@ impl World {
 /**
  * Trace party
  */
-pub fn trace(world: &World, line: &Line, bounces: u32) -> Vector3D {
+pub fn trace(world: &World, line: &Line, max_bounces: u32) -> (Vector3D, u32) {
     let mut hit_distance: f32 = f32::MAX;
     let mut final_material: usize = 0;
 
@@ -56,8 +56,9 @@ pub fn trace(world: &World, line: &Line, bounces: u32) -> Vector3D {
     let mut next_origin: Vector3D = Vector3D::new_as_zero();
     let mut next_normal: Vector3D = Vector3D::new_as_zero();
 
+    let mut bounces_performed: u32 = 0;
     let mut i: u32 = 0;
-    while i < bounces {
+    while i < max_bounces {
         i += 1;
 
         // Planes raycast
@@ -126,9 +127,10 @@ pub fn trace(world: &World, line: &Line, bounces: u32) -> Vector3D {
 
             // Create the next line
             current_line = Line::new(next_origin, reflection);
+            bounces_performed += 1;
         } else {
             // Avoid keep raycasting if it doesn't hit anything.
-            i = bounces;
+            i = max_bounces;
 
             // FIXME: Assume we hit the sky
             let sky_material = world.materials.get(0).unwrap();
@@ -140,7 +142,7 @@ pub fn trace(world: &World, line: &Line, bounces: u32) -> Vector3D {
         result_color = vec_normalize(&result_color);
     }
 
-    return result_color; // world.materials.get(final_material).unwrap().base_color;
+    return (result_color, bounces_performed); // world.materials.get(final_material).unwrap().base_color;
 }
 
 /**

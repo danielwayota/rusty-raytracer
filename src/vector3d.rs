@@ -78,6 +78,14 @@ pub fn vec_sum(u: &Vector3D, v: &Vector3D) -> Vector3D {
     );
 }
 
+pub fn vec_sum_components(u: &Vector3D, x: f32, y: f32, z: f32) -> Vector3D {
+    return Vector3D::new(
+        u.x + x,
+        u.y + y,
+        u.z + z
+    );
+}
+
 pub fn vec_sub(u: &Vector3D, v: &Vector3D) -> Vector3D {
     return Vector3D::new(
         u.x - v.x,
