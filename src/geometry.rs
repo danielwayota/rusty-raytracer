@@ -1,5 +1,6 @@
 use crate::vector3d::{
     Vector3D,
+    vec_normalize,
     vec_sum, vec_multiplication
 };
 
@@ -37,7 +38,7 @@ pub struct Plane {
 
 impl Plane {
     pub fn new(n: Vector3D, d: f32, mat_index: usize) -> Plane {
-        return Plane {n: n, d: d, material_index: mat_index};
+        return Plane {n: vec_normalize(&n), d: d, material_index: mat_index};
     }
 }
 

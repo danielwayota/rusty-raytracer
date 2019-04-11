@@ -28,12 +28,8 @@ pub struct World {
 
 impl World {
     pub fn new() -> World{
-        let default_sky = Vector3D::new(0.25, 0.8, 0.9);
-
-        let materials = vec![Material::new_light(default_sky)];
-
         return World {
-            materials: materials,
+            materials: Vec::new(),
             planes: Vec::new(),
             shperes: Vec::new()
         }
@@ -82,7 +78,7 @@ pub fn trace(world: &World, line: &Line, max_bounces: u32) -> (Vector3D, u32) {
                     final_material = sphere.material_index;
 
                     next_origin = current_line.get_point(t);
-                    next_normal = vec_normalize(&vec_sub(&sphere.o, &next_origin));
+                    next_normal = vec_normalize(&vec_sub(&next_origin, &sphere.o));
                 }
             }
         }
@@ -120,7 +116,7 @@ pub fn trace(world: &World, line: &Line, max_bounces: u32) -> (Vector3D, u32) {
 
             result_color = vec_sum(&result_color, &vec_hadamard(&attenuation, &material.emision_color));
             attenuation = vec_hadamard(
-                &attenuation, &vec_multiplication(&material.base_color, cos_term)
+                &vec_multiplication(&attenuation, cos_term), &material.base_color
             );
 
             final_material = 0;
@@ -138,8 +134,8 @@ pub fn trace(world: &World, line: &Line, max_bounces: u32) -> (Vector3D, u32) {
         }
     }
 
-    if vec_get_length(&result_color) > 1.073 {
-        result_color = vec_normalize(&result_color);
+    if vec_get_length(&result_color) > 1.73 {
+        result_color = vec_multiplication(&vec_normalize(&result_color), 1.73);
     }
 
     return (result_color, bounces_performed); // world.materials.get(final_material).unwrap().base_color;

@@ -79,8 +79,8 @@ fn main() {
     // Raycast stuff
 
     // Le camera
-    let camera_pos: Vector3D = Vector3D::new(0.0, 0.5, 8.0);
-    let camera_look_point: Vector3D = Vector3D::new(0.0, 0.5, 0.0);
+    let camera_pos: Vector3D = Vector3D::new(0.0, 8.0, 10.0);
+    let camera_look_point: Vector3D = Vector3D::new(0.0, 0.0, 0.0);
     let camera_dir: Vector3D = vec_normalize(&vec_sub(&camera_look_point, &camera_pos));
 
     // Camera proyection plane
@@ -101,38 +101,68 @@ fn main() {
     let mut rng = rand::thread_rng();
 
     // Floor
-    world.materials.push(
+    world.materials = vec![
+        // Sky color and ambient light
+        Material::new_light(
+            // Vector3D::new(0.25, 0.8, 0.9)
+            Vector3D::new(0.2, 0.2, 0.25)
+            // Vector3D::new_as_zero()
+        ),
+        // Floor
         Material::new(
             float_color_from_bytes(88, 117, 167),
             Vector3D::new_as_zero(),
             0.8
-        )
-    );
-    world.materials.push(
+        ),
+        
+        //Spheres
         Material::new(
-            float_color_from_bytes(10, 153, 153),
+            float_color_from_bytes(153, 153, 153),
+            Vector3D::new_as_zero(),
+            0.05
+        ),
+        Material::new(
+            float_color_from_bytes(216, 36, 23),
             Vector3D::new_as_zero(),
             0.8
-        )
-    );
-    world.materials.push(
-        Material::new_light(
-            float_color_from_bytes(216, 36, 23)
-        )
-    );
-
-    world.materials.push(
-        Material::new_light(Vector3D::new(0.1, 1.0, 0.1))
-    );
-
-    world.planes.push(
-        Plane::new(Vector3D::new(0.0, 1.0, 0.0), 0.0, 1)
-    );
-
-    world.shperes = vec![
-        Sphere::new(Vector3D::new(0.0, 0.0, 0.0), 1.0, 2),
-        Sphere::new(Vector3D::new(2.0, 0.0, 2.0), 1.0, 3)
+        ),
+        // Lights
+        Material::new_light(Vector3D::new(5.0, 5.0, 5.0)),
+        Material::new_light(Vector3D::new(5.0, 0.25, 0.25))
     ];
+
+    world.materials.push(
+        Material::new_light(Vector3D::new(0.8, 1.0, 0.8))
+    );
+
+    world.planes= vec![
+        Plane::new(Vector3D::new(0.0, 1.0, 0.0), 0.0, 1),
+        // Plane::new(Vector3D::new(0.0, 0.1, -1.0), -10.0, 1)
+    ];
+
+    let size: isize = 1;
+
+    for sx in -size..size {
+        for sy in -size..size {
+            world.shperes.push(
+                Sphere::new(Vector3D::new(sx as f32 * 2.0, 3.0, sy as f32 * 2.0), 0.25, 4)
+            );
+        }
+    }
+
+    let size: isize = 2;
+
+    for sx in -size..size {
+        for sy in -size..size {
+            world.shperes.push(
+                Sphere::new(Vector3D::new(
+                    sx as f32 * 1.25,
+                    1.0,
+                    sy as f32
+                ), 0.5, 2)
+            );
+        }
+    }
 
     // Stats
     let mut finised = false;
@@ -169,7 +199,7 @@ fn main() {
                 let film_plane_point = vec_sum(&film_offset, &proj_plane_position);
 
                 // Sample rays
-                let samples: u32 = 32;
+                let samples: u32 = 4;
                 let single_color_contribution: f32 = 1.0 / samples as f32;
 
                 // Initialize the pixel color
@@ -193,7 +223,7 @@ fn main() {
                     let direction = vec_normalize(&vec_sub(&sample_film_plane_point, &camera_pos));
                     let line: Line = Line::new(camera_pos, direction);
 
-                    let (trace_color, bounces) = trace(&world, &line, 32);
+                    let (trace_color, bounces) = trace(&world, &line, 4);
 
                     num_rays += bounces as u64;
                     if bounces == 0 {
