@@ -15,6 +15,12 @@ pub struct Camera {
     pub projection_plane_position: Vector3D
 }
 
+macro_rules! screen_to_percent {
+    ($index: expr, $size: expr) => {
+        2.0 * ($index as f32 / ($size-1) as f32) - 1.0
+    };
+}
+
 impl Camera {
     /**
      * Camera default contructor.
@@ -43,7 +49,26 @@ impl Camera {
         };
     }
 
-    pub fn screen_point_to_projection_plane(x: usize, width: usize, y: usize, height: usize) {
+    /**
+     * Converts the screen point in a world space coordinate in the projection plane
+     * 
+     * @param {usize} x
+     * @param {usize} width
+     * @param {usize} y
+     * @param {usize} height
+     * 
+     * @return {Vector3D}
+     */
+    pub fn screen_point_to_projection_plane(&self, x: usize, width: usize, y: usize, height: usize) -> Vector3D {
+        let film_y = screen_to_percent!(y, height) * -1.0;
+        let film_up = vec_multiplication(&self.up, film_y);
 
+        let film_x = screen_to_percent!(x, width) * (width as f32 / height as f32);
+        let film_right = vec_multiplication(&self.right, film_x);
+
+        let film_offset = vec_sum(&film_right, &film_up);
+        let film_plane_point = vec_sum(&film_offset, &self.projection_plane_position);
+
+        return film_plane_point;
     }
 }
