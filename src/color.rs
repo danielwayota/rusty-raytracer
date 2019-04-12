@@ -3,24 +3,26 @@ use crate::vector3d::Vector3D;
 pub struct Material {
     pub base_color: Vector3D,
     pub emision_color: Vector3D,
-    pub roughness: f32
+    pub roughness: f32,
+    pub metalic: f32
 }
 
 impl Material {
-    pub fn new(base: Vector3D, emit: Vector3D, roughness: f32) -> Material {
+    pub fn new(base: Vector3D, emit: Vector3D, roughness: f32, metal: f32) -> Material {
         return Material {
             base_color: base,
             emision_color: emit,
-            roughness: roughness
+            roughness: roughness,
+            metalic: metal
         };
     }
 
     pub fn new_base(base: Vector3D) -> Material {
-        return Material::new(base, Vector3D::new_as_zero(), 0.25);
+        return Material::new(base, Vector3D::new_as_zero(), 0.25, 0.1);
     }
 
     pub fn new_light(emit: Vector3D) -> Material {
-        return Material::new(emit, emit, 0.8);
+        return Material::new(emit, emit, 0.8, 0.0);
     }
 }
 

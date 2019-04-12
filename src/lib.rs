@@ -18,6 +18,24 @@ use geometry::{
 
 use color::{Material};
 
+
+pub struct PointLight {
+    pub position: Vector3D,
+    pub color: Vector3D,
+    pub range: f32
+}
+
+impl PointLight {
+    pub fn new (pos: Vector3D, color: Vector3D, range: f32) -> PointLight {
+        return PointLight {
+            position: pos,
+            color: color,
+            range: range
+        };
+    }
+}
+
+
 /**
  * World struct
  */
@@ -25,7 +43,9 @@ pub struct World {
     pub materials: Vec<Material>,
 
     pub planes:  Vec<Plane>,
-    pub shperes: Vec<Sphere>
+    pub shperes: Vec<Sphere>,
+
+    pub lights: Vec<PointLight>
 }
 
 impl World {
@@ -33,7 +53,9 @@ impl World {
         return World {
             materials: Vec::new(),
             planes: Vec::new(),
-            shperes: Vec::new()
+            shperes: Vec::new(),
+
+            lights: Vec::new()
         }
     }
 }
@@ -103,23 +125,73 @@ pub fn trace(world: &World, line: &Line, max_bounces: u32) -> (Vector3D, u32) {
             );
 
             // --------------------------------------
+            // Light stuff
+            // --------------------------------------
+
+            let mut light_contribs: Vec<(f32, Vector3D)> = Vec::new();
+
+            for light in world.lights.iter() {
+                let point_to_light = vec_normalize(&vec_sub(&light.position, &next_origin));
+                
+                let mut coeficient: f32= 1.0;
+                coeficient += vec_dot(
+                    &next_normal,
+                    &point_to_light
+                );
+
+                if coeficient < 0.1 {
+                    coeficient = 0.1;
+                }
+
+                let surface_to_light : Line = Line::new(next_origin, point_to_light);
+                let point_to_light_distance = vec_get_length(&vec_sub(&light.position, &next_origin));
+                // Shadow calculation coeficient
+                for sphere in world.shperes.iter() {
+                    if let Some(t) = intersect_line_sphere(&surface_to_light, sphere) {
+                        if t < point_to_light_distance {
+                            coeficient *= 0.25;
+                            break;
+                        }
+                    }
+                }
+
+                let mut percent: f32 = point_to_light_distance / light.range;
+
+                if percent > 1.0 { percent = 1.0; }
+
+                let light_power = 1.0 - percent;
+
+                light_contribs.push( (coeficient, vec_multiplication(&light.color, light_power)) );
+            }
+
+            // --------------------------------------
             // Color modification
             // --------------------------------------
 
-            // Cosine term for color reflection.
-            let mut cos_term = 1.0;
-            /* vec_dot(
-                &vec_multiplication(&current_line.d, -1.0), &next_normal
-            );*/
-
-            if cos_term < 0.0 {
-                cos_term = 0.0;
-            }
-
+            // Emission contribution
             result_color = vec_sum(&result_color, &vec_hadamard(&attenuation, &material.emision_color));
+
+            // Light absortion
             attenuation = vec_hadamard(
-                &vec_multiplication(&attenuation, cos_term), &material.base_color
+                &attenuation,
+                &vec_multiplication(
+                    // More metalic, less attenuation by base color.
+                    &material.base_color, 1.0 - (0.5 + (material.metalic * 0.5))
+                )
             );
+
+            // Lights contribution
+            let mut coeficient_sum: f32 = 1.0;
+            for contrib in light_contribs {
+                let diffuse_light = vec_hadamard(&contrib.1, &attenuation);
+                result_color = vec_sum(
+                    &result_color,
+                    &vec_multiplication(&diffuse_light, contrib.0)
+                );
+
+                coeficient_sum *= contrib.0;
+            }
+            attenuation = vec_multiplication(&attenuation, coeficient_sum);
 
             final_material = 0;
 

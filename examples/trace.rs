@@ -15,7 +15,7 @@ use rand::prelude::*;
 
 extern crate raytracer;
 use raytracer::{
-    trace, World
+    trace, World, PointLight
 };
 
 use raytracer::geometry::{
@@ -32,13 +32,6 @@ use raytracer::color::{
     float_color_from_bytes, linear_color_to_srgb
 };
 use raytracer::camera::{Camera};
-
-
-macro_rules! screen_to_percent {
-    ($index: expr, $size: expr) => {
-        2.0 * ($index as f32 / ($size-1) as f32) - 1.0
-    };
-}
 
 
 fn save_buffer_to_bmp(buffer: &Vec<Vector3D>, img_width: u32, img_height: u32, file_name: &str) -> IOResult<()> {
@@ -64,9 +57,8 @@ fn save_buffer_to_bmp(buffer: &Vec<Vector3D>, img_width: u32, img_height: u32, f
 
 
 fn main() {
-    const WIDTH: usize = 640;
-    const HEIGHT: usize = 640;
-    const SCREEN_RATIO: f32 = WIDTH as f32 / HEIGHT as f32;
+    const WIDTH: usize = 1080;
+    const HEIGHT: usize = 720;
 
     // --- Window setup ---
 
@@ -82,7 +74,7 @@ fn main() {
 
     // Le camera
     let camera: Camera = Camera::new(
-        Vector3D::new(0.0, 8.0, 10.0),
+        Vector3D::new(0.0, 8.0, 8.0),
         Vector3D::new(0.0, 0.0, 0.0),
         2.0
     );
@@ -102,26 +94,30 @@ fn main() {
         // Sky color and ambient light
         Material::new_light(
             // Vector3D::new(0.25, 0.8, 0.9)
-            Vector3D::new(0.2, 0.2, 0.25)
+            // Vector3D::new(0.2, 0.2, 0.25)
+            Vector3D::new(0.1, 0.1, 0.15)
             // Vector3D::new_as_zero()
         ),
         // Floor
         Material::new(
             float_color_from_bytes(88, 117, 167),
             Vector3D::new_as_zero(),
-            0.8
+            0.8,
+            0.0
         ),
         
         //Spheres
         Material::new(
-            float_color_from_bytes(153, 153, 153),
+            float_color_from_bytes(250, 250, 250),
             Vector3D::new_as_zero(),
-            0.05
+            0.05,
+            0.9
         ),
         Material::new(
-            float_color_from_bytes(216, 36, 23),
+            float_color_from_bytes(212, 175, 55),
             Vector3D::new_as_zero(),
-            0.8
+            0.05,
+            0.2
         ),
         // Lights
         Material::new_light(Vector3D::new(5.0, 5.0, 5.0)),
@@ -137,30 +133,39 @@ fn main() {
         // Plane::new(Vector3D::new(0.0, 0.1, -1.0), -10.0, 1)
     ];
 
-    let size: isize = 1;
+    world.lights.push(PointLight::new( Vector3D::new(2.0, 5.0, 0.0), Vector3D::new(0.9, 0.9, 0.9), 5.0 ));
+    world.lights.push(PointLight::new( Vector3D::new(-2.0, 5.0, 0.0), Vector3D::new(0.9, 0.7, 0.9), 5.0 ));
 
-    for sx in -size..size {
-        for sy in -size..size {
-            world.shperes.push(
-                Sphere::new(Vector3D::new(sx as f32 * 2.0, 3.0, sy as f32 * 2.0), 0.25, 4)
-            );
-        }
-    }
+    // world.lights.push(PointLight::new( Vector3D::new(-2.0, 5.0, 0.0), Vector3D::new(0.2, 0.1, 0.1) ));
 
     let size: isize = 2;
 
     for sx in -size..size {
         for sy in -size..size {
             world.shperes.push(
-                Sphere::new(Vector3D::new(
-                    sx as f32 * 1.25,
-                    1.0,
-                    sy as f32
-                ), 0.5, 2)
+                Sphere::new(
+                    Vector3D::new(
+                        sx as f32 * 2.0 + 0.5,
+                        3.0,
+                        sy as f32 * 2.0 + 0.5),
+                        0.25, 4
+                    )
             );
         }
     }
+    let size: isize = 3;
 
+    for sx in -size..size {
+        for sy in -size..size {
+            world.shperes.push(
+                Sphere::new(Vector3D::new(
+                    sx as f32 + 0.5,
+                    1.0,
+                    sy as f32 + 0.5
+                ), 0.5, if (sx + sy) % 2 != 0 {3} else {2})
+            );
+        }
+    }
     // Stats
     let mut finised = false;
     let mut num_rays: u64 = 0;
@@ -181,22 +186,12 @@ fn main() {
 
         // Compose the image
         if j < HEIGHT {
-            let film_y = screen_to_percent!(j, HEIGHT) * -1.0;
-            let film_up = vec_multiplication(&camera.up, film_y);
-
             // Horizontal scan line
             for i in 0..WIDTH {
-                let film_x = screen_to_percent!(i, WIDTH) * SCREEN_RATIO;
-
-                // World space offset vectors
-                let film_right = vec_multiplication(&camera.right, film_x);
-                
-                // film plane combination
-                let film_offset = vec_sum(&film_right, &film_up);
-                let film_plane_point = vec_sum(&film_offset, &camera.projection_plane_position);
+                let film_plane_point = camera.screen_point_to_projection_plane(i, WIDTH, j, HEIGHT);
 
                 // Sample rays
-                let samples: u32 = 4;
+                let samples: u32 = 128;
                 let single_color_contribution: f32 = 1.0 / samples as f32;
 
                 // Initialize the pixel color
@@ -220,7 +215,7 @@ fn main() {
                     let direction = vec_normalize(&vec_sub(&sample_film_plane_point, &camera.position));
                     let line: Line = Line::new(camera.position, direction);
 
-                    let (trace_color, bounces) = trace(&world, &line, 4);
+                    let (trace_color, bounces) = trace(&world, &line, 32);
 
                     num_rays += bounces as u64;
                     if bounces == 0 {
@@ -261,5 +256,3 @@ fn main() {
         window.update_with_buffer(&buffer).unwrap();
     }
 }
-
- 
