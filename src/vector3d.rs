@@ -2,9 +2,9 @@ extern crate rand;
 
 use rand::prelude::*;
 
-/**
- * Vector Class implementation
- */
+// ================================================
+// 3D Vector implementation
+// ================================================
 #[derive(Copy, Clone)]
 pub struct Vector3D {
     pub x: f32,
@@ -48,17 +48,19 @@ impl ToString for Vector3D {
     }
 }
 
-/**
- * Usefull Constants
- */
+// ================================================
+// Cartesian unit vectors
+// ================================================
 
 pub const I: Vector3D = Vector3D { x: 1.0, y: 0.0, z: 0.0 };
 pub const J: Vector3D = Vector3D { x: 0.0, y: 1.0, z: 0.0 };
 pub const K: Vector3D = Vector3D { x: 0.0, y: 0.0, z: 1.0 };
 
-/**
- * Vector transformation functions
- */
+
+// ================================================
+// Vector transformations
+// ================================================
+
 pub fn vec_get_length(v: &Vector3D) -> f32 {
     let sum: f32 = v.x * v.x + v.y * v.y + v.z * v.z;
     return sum.sqrt();
@@ -132,54 +134,4 @@ pub fn vec_hadamard(u: &Vector3D, v: &Vector3D) -> Vector3D {
         u.y * v.y,
         u.z * v.z
     );
-}
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn vector_length() {
-        let v: Vector3D = Vector3D::new(1f32, 1f32, 1f32);
-
-        let l: f32 = vec_get_length(&v);
-        assert!(l < 2f32 && l > 1f32);
-    }
-
-    #[test]
-    fn vector_other_length() {
-        let v: Vector3D = Vector3D::new(42f32, 42f32, 42f32);
-
-        let l = vec_get_length(&v);
-        assert!(l > 72f32 && l < 73f32);
-    }
-
-    #[test]
-    fn vector_vec_normalize() {
-        let v: Vector3D = Vector3D::new(42f32, 42f32, 42f32);
-
-        let n: Vector3D = vec_normalize(&v);
-
-        let l = vec_get_length(&n);
-        assert!(l > 0.9f32 && l < 1.1f32);
-    }
-
-    #[test]
-    fn vec_dot_product() {
-        let u: Vector3D = Vector3D::new(1.0, 0.0, 0.0);
-        let v: Vector3D = Vector3D::new(-1.0, 0.0, 0.0);
-
-        assert_eq!(vec_dot(&u, &v), -1.0);
-
-        let u: Vector3D = Vector3D::new(1.0, 0.0, 0.0);
-        let v: Vector3D = Vector3D::new(1.0, 0.0, 0.0);
-
-        assert_eq!(vec_dot(&u, &v), 1.0);
-
-        let u: Vector3D = Vector3D::new(1.0, 0.0, 0.0);
-        let v: Vector3D = Vector3D::new(0.0, 1.0, 0.0);
-
-        assert_eq!(vec_dot(&u, &v), 0.0);
-    }
 }

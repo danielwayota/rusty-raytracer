@@ -1,6 +1,7 @@
 pub mod vector3d;
 pub mod color;
 pub mod geometry;
+pub mod camera;
 
 use std::f32;
 
@@ -10,11 +11,12 @@ use vector3d::{
     vec_sum, vec_sub, vec_multiplication, vec_hadamard
 };
 
-use geometry::{ Line, Sphere, Plane };
+use geometry::{
+    Line, Sphere, Plane,
+    intersect_line_plane, intersect_line_sphere
+};
 
 use color::{Material};
-
-const MARGIN: f32 = 0.001f32;
 
 /**
  * World struct
@@ -139,67 +141,4 @@ pub fn trace(world: &World, line: &Line, max_bounces: u32) -> (Vector3D, u32) {
     }
 
     return (result_color, bounces_performed); // world.materials.get(final_material).unwrap().base_color;
-}
-
-/**
- * Intersection functions
- */
-
-pub fn intersect_line_plane(line: &Line, plane: &Plane) ->Option<f32> {
-    let denom = vec_dot(&plane.n, &line.d);
-
-    if  denom.abs() < MARGIN {
-        return None;
-    }
-
-    let t = (- vec_dot(&plane.n, &line.o) - plane.d) / denom;
-
-    if t < MARGIN {
-        return None;
-    }
-
-    return Some(t);
-
-}
-
-/**
- * Checks the intersection of the given line and the sphere.
- * 
- * @param Line line
- * @param Sphere shpere
- */ 
-pub fn intersect_line_sphere(line: &Line, shpere: &Sphere) -> Option<f32> {
-    // Quadratic ecuation
-    // -b +- SQRT( b*b -4*a*c ) / 2*a
-
-    let origin = vec_sub(&line.o, &shpere.o);
-
-    let a: f32 = vec_dot(&line.d, &line.d);
-    let b: f32 = 2.0 * vec_dot(&origin, &line.d);
-    let c: f32 = vec_dot(&origin, &origin) - shpere.r * shpere.r;
-
-    if a.abs() < MARGIN {
-        return None;
-    }
-
-    let root: f32 = b*b - 4.0 * a * c;
-
-    // Sqrt becomes imaginary
-    if root < 0.0 {
-        return None;
-    }
-
-    let tn: f32 = (- b - root.sqrt()) / 2.0 * a;
-    let tp: f32  = (- b + root.sqrt()) / 2.0 * a;
-
-    let mut t: f32 = tp;
-    if tn > 0.0 && tn < tp {
-        t = tn;
-    }
-
-    if t < MARGIN {
-        return None;
-    }
-
-    return Some(t);
 }

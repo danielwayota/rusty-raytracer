@@ -6,7 +6,7 @@ use bmp::{Image, Pixel};
 
 extern crate minifb;
 use minifb::{
-    Window, WindowOptions, Scale,
+    Window, WindowOptions,
     Menu
 };
 
@@ -24,14 +24,14 @@ use raytracer::geometry::{
 
 use raytracer::vector3d::{
     Vector3D,
-    J,
     vec_sum, vec_sum_components, vec_sub, vec_multiplication,
-    vec_cross, vec_normalize
+    vec_normalize
 };
 use raytracer::color::{
     Material, color_to_u32,
-    float_color_from_bytes, linear_color_to_sRGB
+    float_color_from_bytes, linear_color_to_srgb
 };
+use raytracer::camera::{Camera};
 
 
 macro_rules! screen_to_percent {
@@ -68,31 +68,29 @@ fn main() {
     const HEIGHT: usize = 640;
     const SCREEN_RATIO: f32 = WIDTH as f32 / HEIGHT as f32;
 
-    // Window setup
+    // --- Window setup ---
+
+    // The integer buffer is used to display the image on screen
     let mut buffer: Vec<u32> = vec![0; WIDTH * HEIGHT];
+
+    // The float buffer is needed to save the final image as BPM.
     let mut float_buffer: Vec<Vector3D> = vec![Vector3D::new_as_zero(); WIDTH * HEIGHT];
 
-    let options = WindowOptions::default();
-    // options.scale = Scale::X32;
-    let mut window = Window::new("Raycaster - The Begining", WIDTH, HEIGHT, options).unwrap();
+    let mut window = Window::new("Raycaster - The Begining", WIDTH, HEIGHT, WindowOptions::default()).unwrap();
 
-    // Raycast stuff
+    // --- Raycast stuff ---
 
     // Le camera
-    let camera_pos: Vector3D = Vector3D::new(0.0, 8.0, 10.0);
-    let camera_look_point: Vector3D = Vector3D::new(0.0, 0.0, 0.0);
-    let camera_dir: Vector3D = vec_normalize(&vec_sub(&camera_look_point, &camera_pos));
+    let camera: Camera = Camera::new(
+        Vector3D::new(0.0, 8.0, 10.0),
+        Vector3D::new(0.0, 0.0, 0.0),
+        2.0
+    );
 
-    // Camera proyection plane
-    let proj_right = vec_normalize(&vec_cross(&camera_dir, &J));
-    let proj_up =  vec_normalize(&vec_cross(&proj_right, &camera_dir));
-
-    let proj_plane_position = vec_sum(&camera_pos, &vec_multiplication(&camera_dir, 2.0));
-
-    // World objects
+    // --- World objects ---
     let mut world = World::new();
 
-    // Menus
+    // Save result image Menu
     let mut save_menu = Menu::new("File").unwrap();
     save_menu.add_item("Save Image", 42).build();
     window.add_menu(&save_menu);
@@ -100,7 +98,6 @@ fn main() {
     // Random
     let mut rng = rand::thread_rng();
 
-    // Floor
     world.materials = vec![
         // Sky color and ambient light
         Material::new_light(
@@ -185,18 +182,18 @@ fn main() {
         // Compose the image
         if j < HEIGHT {
             let film_y = screen_to_percent!(j, HEIGHT) * -1.0;
+            let film_up = vec_multiplication(&camera.up, film_y);
 
             // Horizontal scan line
             for i in 0..WIDTH {
                 let film_x = screen_to_percent!(i, WIDTH) * SCREEN_RATIO;
 
                 // World space offset vectors
-                let film_right = vec_multiplication(&proj_right, film_x);
-                let film_up = vec_multiplication(&proj_up, film_y);
+                let film_right = vec_multiplication(&camera.right, film_x);
                 
                 // film plane combination
                 let film_offset = vec_sum(&film_right, &film_up);
-                let film_plane_point = vec_sum(&film_offset, &proj_plane_position);
+                let film_plane_point = vec_sum(&film_offset, &camera.projection_plane_position);
 
                 // Sample rays
                 let samples: u32 = 4;
@@ -220,8 +217,8 @@ fn main() {
                     );
 
                     // Ray
-                    let direction = vec_normalize(&vec_sub(&sample_film_plane_point, &camera_pos));
-                    let line: Line = Line::new(camera_pos, direction);
+                    let direction = vec_normalize(&vec_sub(&sample_film_plane_point, &camera.position));
+                    let line: Line = Line::new(camera.position, direction);
 
                     let (trace_color, bounces) = trace(&world, &line, 4);
 
@@ -246,7 +243,7 @@ fn main() {
 
                 let index = j * WIDTH + i;
 
-                let gamma_corrected_color = linear_color_to_sRGB(&pixel_color);
+                let gamma_corrected_color = linear_color_to_srgb(&pixel_color);
 
                 buffer[index] = color_to_u32(&gamma_corrected_color);
                 float_buffer[index] = gamma_corrected_color;
