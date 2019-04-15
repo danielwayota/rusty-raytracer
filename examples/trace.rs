@@ -57,8 +57,8 @@ fn save_buffer_to_bmp(buffer: &Vec<Vector3D>, img_width: u32, img_height: u32, f
 
 
 fn main() {
-    const WIDTH: usize = 1080;
-    const HEIGHT: usize = 720;
+    const WIDTH: usize = 640;
+    const HEIGHT: usize = 640;
 
     // --- Window setup ---
 
@@ -132,12 +132,18 @@ fn main() {
     world.lights.push(PointLight::new( Vector3D::new(-2.0, 5.0, 0.0), Vector3D::new(0.9, 0.7, 0.9), 5.0 ));
 
     world.objects.push(
-        Box::new(Plane::new(Vector3D::new(0.0, 1.0, 0.0), 0.0, 1))
+        Box::new(
+            Plane::new(
+                Vector3D::new(0.0, 1.0, 0.0),
+                Vector3D::new(0.0, 1.0, 0.0),
+                1
+            )
+        )
     );
 
     // world.lights.push(PointLight::new( Vector3D::new(-2.0, 5.0, 0.0), Vector3D::new(0.2, 0.1, 0.1) ));
 
-    let size: isize = 2;
+    let size: isize = 1;
 
     for sx in -size..size {
         for sy in -size..size {
@@ -154,7 +160,7 @@ fn main() {
             );
         }
     }
-    let size: isize = 3;
+    let size: isize = 2;
 
     for sx in -size..size {
         for sy in -size..size {
@@ -197,7 +203,7 @@ fn main() {
                 let film_plane_point = camera.screen_point_to_projection_plane(i, WIDTH, j, HEIGHT);
 
                 // Sample rays
-                let samples: u32 = 4;
+                let samples: u32 = 2;
                 let single_color_contribution: f32 = 1.0 / samples as f32;
 
                 // Initialize the pixel color

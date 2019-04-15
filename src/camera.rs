@@ -4,8 +4,6 @@ use crate::vector3d::{
     vec_normalize, vec_cross
 };
 
-use crate::geometry::{Line};
-
 pub struct Camera {
     pub position: Vector3D,
     pub look_direction: Vector3D,

@@ -100,9 +100,9 @@ pub fn trace(world: &World, line: &Line, max_bounces: u32) -> (Vector3D, u32) {
             let material = world.materials.get(final_material).unwrap();
 
             // Reflection
-            let reflection_coeficient: f32 = 2.0 * vec_dot(&line.d, &next_normal);
+            let reflection_coeficient: f32 = 2.0 * vec_dot(&line.direction, &next_normal);
             let reflection_correction = vec_multiplication(&next_normal, reflection_coeficient);
-            let pure_reflection = vec_sub(&line.d, &reflection_correction);
+            let pure_reflection = vec_sub(&line.direction, &reflection_correction);
 
             let random_reflection = Vector3D::new_random(material.roughness);
 
