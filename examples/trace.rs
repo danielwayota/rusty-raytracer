@@ -19,7 +19,7 @@ use raytracer::{
 };
 
 use raytracer::geometry::{
-    Line, Sphere, Plane
+    Line, Sphere, Triangle
 };
 
 use raytracer::vector3d::{
@@ -133,9 +133,10 @@ fn main() {
 
     world.objects.push(
         Box::new(
-            Plane::new(
-                Vector3D::new(0.0, 1.0, 0.0),
-                Vector3D::new(0.0, 1.0, 0.0),
+            Triangle::new(
+                Vector3D::new( 0.0, 0.0, -5.0),
+                Vector3D::new( 5.0, 0.0, 5.0),
+                Vector3D::new(-5.0, 0.0, 5.0),
                 1
             )
         )
