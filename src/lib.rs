@@ -12,8 +12,7 @@ use vector3d::{
 };
 
 use geometry::{
-    Line, Sphere, Plane,
-    intersect_line_plane, intersect_line_sphere
+    Line, Sphere, Plane, Intersect
 };
 
 use color::{Material};
@@ -45,6 +44,8 @@ pub struct World {
     pub planes:  Vec<Plane>,
     pub shperes: Vec<Sphere>,
 
+    pub objects: Vec<Box<Intersect>>,
+
     pub lights: Vec<PointLight>
 }
 
@@ -54,6 +55,8 @@ impl World {
             materials: Vec::new(),
             planes: Vec::new(),
             shperes: Vec::new(),
+
+            objects: Vec::new(),
 
             lights: Vec::new()
         }
@@ -81,28 +84,14 @@ pub fn trace(world: &World, line: &Line, max_bounces: u32) -> (Vector3D, u32) {
     while i < max_bounces {
         i += 1;
 
-        // Planes raycast
-        for plane in world.planes.iter() {
-            if let Some(t) = intersect_line_plane(&current_line, plane) {
+        for obj in world.objects.iter() {
+            if let Some(t) = obj.intersects(&current_line) {
                 if t < hit_distance {
                     hit_distance = t;
-                    final_material = plane.material_index;
+                    final_material = obj.get_material_index();
 
                     next_origin = current_line.get_point(t);
-                    next_normal = plane.n;
-                }
-            }
-        }
-
-        // Spheres raycast
-        for sphere in world.shperes.iter() {
-            if let Some(t) = intersect_line_sphere(&current_line, sphere) {
-                if t < hit_distance {
-                    hit_distance = t;
-                    final_material = sphere.material_index;
-
-                    next_origin = current_line.get_point(t);
-                    next_normal = vec_normalize(&vec_sub(&next_origin, &sphere.o));
+                    next_normal = obj.get_normal(&next_origin);
                 }
             }
         }
@@ -146,8 +135,8 @@ pub fn trace(world: &World, line: &Line, max_bounces: u32) -> (Vector3D, u32) {
                 let surface_to_light : Line = Line::new(next_origin, point_to_light);
                 let point_to_light_distance = vec_get_length(&vec_sub(&light.position, &next_origin));
                 // Shadow calculation coeficient
-                for sphere in world.shperes.iter() {
-                    if let Some(t) = intersect_line_sphere(&surface_to_light, sphere) {
+                for obj in world.objects.iter() {
+                    if let Some(t) = obj.intersects(&surface_to_light) {
                         if t < point_to_light_distance {
                             coeficient *= 0.25;
                             break;

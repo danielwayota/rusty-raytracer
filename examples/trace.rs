@@ -128,13 +128,12 @@ fn main() {
         Material::new_light(Vector3D::new(0.8, 1.0, 0.8))
     );
 
-    world.planes= vec![
-        Plane::new(Vector3D::new(0.0, 1.0, 0.0), 0.0, 1),
-        // Plane::new(Vector3D::new(0.0, 0.1, -1.0), -10.0, 1)
-    ];
-
     world.lights.push(PointLight::new( Vector3D::new(2.0, 5.0, 0.0), Vector3D::new(0.9, 0.9, 0.9), 5.0 ));
     world.lights.push(PointLight::new( Vector3D::new(-2.0, 5.0, 0.0), Vector3D::new(0.9, 0.7, 0.9), 5.0 ));
+
+    world.objects.push(
+        Box::new(Plane::new(Vector3D::new(0.0, 1.0, 0.0), 0.0, 1))
+    );
 
     // world.lights.push(PointLight::new( Vector3D::new(-2.0, 5.0, 0.0), Vector3D::new(0.2, 0.1, 0.1) ));
 
@@ -142,14 +141,16 @@ fn main() {
 
     for sx in -size..size {
         for sy in -size..size {
-            world.shperes.push(
-                Sphere::new(
-                    Vector3D::new(
-                        sx as f32 * 2.0 + 0.5,
-                        3.0,
-                        sy as f32 * 2.0 + 0.5),
-                        0.25, 4
+            world.objects.push(
+                Box::new(
+                    Sphere::new(
+                        Vector3D::new(
+                            sx as f32 * 2.0 + 0.5,
+                            3.0,
+                            sy as f32 * 2.0 + 0.5
+                        ),0.25, 4
                     )
+                )
             );
         }
     }
@@ -157,15 +158,20 @@ fn main() {
 
     for sx in -size..size {
         for sy in -size..size {
-            world.shperes.push(
-                Sphere::new(Vector3D::new(
-                    sx as f32 + 0.5,
-                    1.0,
-                    sy as f32 + 0.5
-                ), 0.5, if (sx + sy) % 2 != 0 {3} else {2})
+            world.objects.push(
+                Box::new(
+                    Sphere::new(
+                        Vector3D::new(
+                            sx as f32 + 0.5,
+                            1.0,
+                            sy as f32 + 0.5
+                        ), 0.5, if (sx + sy) % 2 != 0 {3} else {2}
+                    )
+                )
             );
         }
     }
+
     // Stats
     let mut finised = false;
     let mut num_rays: u64 = 0;
@@ -191,7 +197,7 @@ fn main() {
                 let film_plane_point = camera.screen_point_to_projection_plane(i, WIDTH, j, HEIGHT);
 
                 // Sample rays
-                let samples: u32 = 128;
+                let samples: u32 = 4;
                 let single_color_contribution: f32 = 1.0 / samples as f32;
 
                 // Initialize the pixel color
