@@ -63,7 +63,7 @@ impl Intersect for Plane {
     fn intersects(&self, line: &Line) -> Option<f32> {
         let denom = vec_dot(&self.normal, &line.direction);
 
-        if denom.abs() < MARGIN {
+        if denom.abs() < MARGIN || denom >= 0.0 {
             return None;
         }
 
