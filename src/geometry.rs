@@ -41,14 +41,12 @@ impl Line {
 
 pub struct Plane {
     pub normal: Vector3D,
-    pub point: Vector3D,
-
-    pub material_index: usize
+    pub point: Vector3D
 }
 
 impl Plane {
-    pub fn new(n: Vector3D, p: Vector3D, mat_index: usize) -> Plane {
-        return Plane {normal: vec_normalize(&n), point: p, material_index: mat_index};
+    pub fn new(n: Vector3D, p: Vector3D) -> Plane {
+        return Plane {normal: vec_normalize(&n), point: p};
     }
 }
 
@@ -81,7 +79,7 @@ impl Intersect for Plane {
     }
 
     fn get_material_index(&self) -> usize {
-        return self.material_index;
+        return 0;
     }
 }
 
@@ -166,7 +164,8 @@ pub struct Triangle {
     pub b: Vector3D,
     pub c: Vector3D,
 
-    pub inner_plane: Plane
+    pub inner_plane: Plane,
+    pub material_index: usize
 }
 
 impl Triangle {
@@ -176,10 +175,11 @@ impl Triangle {
 
         let normal: Vector3D = vec_normalize(&vec_cross(&ac, &ab));
 
-        let the_plane: Plane = Plane::new(normal, a, mat_index);
+        let the_plane: Plane = Plane::new(normal, a);
 
         return Triangle {
             a: a, b: b, c: c,
+            material_index: mat_index,
             inner_plane: the_plane
         }
     }
@@ -227,6 +227,22 @@ impl Intersect for Triangle {
     }
 
     fn get_material_index(&self) -> usize {
-        return self.inner_plane.material_index;
+        return self.material_index;
+    }
+}
+
+// ================================================
+// Triangle implementation
+// ================================================
+
+pub struct Mesh {
+    pub triangles: Vec<Triangle>
+}
+
+impl Mesh {
+    pub fn new() -> Mesh {
+        return Mesh {
+            triangles: Vec::new()
+        };
     }
 }

@@ -1,5 +1,6 @@
 use std::io::Result as IOResult;
 use std::time::Instant;
+use std::fs;
 
 extern crate bmp;
 use bmp::{Image, Pixel};
@@ -17,10 +18,8 @@ extern crate raytracer;
 use raytracer::{
     trace, World, PointLight
 };
-
-use raytracer::geometry::{
-    Line, Sphere, Triangle
-};
+use raytracer::loaders::{load_obj};
+use raytracer::geometry::{Line};
 
 use raytracer::vector3d::{
     Vector3D,
@@ -74,7 +73,7 @@ fn main() {
 
     // Le camera
     let camera: Camera = Camera::new(
-        Vector3D::new(0.0, 8.0, 8.0),
+        Vector3D::new(0.0, 2.0, 6.0),
         Vector3D::new(0.0, 0.0, 0.0),
         2.0
     );
@@ -124,60 +123,12 @@ fn main() {
         Material::new_light(Vector3D::new(5.0, 0.25, 0.25))
     ];
 
-    world.materials.push(
-        Material::new_light(Vector3D::new(0.8, 1.0, 0.8))
-    );
-
     world.lights.push(PointLight::new( Vector3D::new(2.0, 5.0, 0.0), Vector3D::new(0.9, 0.9, 0.9), 5.0 ));
     world.lights.push(PointLight::new( Vector3D::new(-2.0, 5.0, 0.0), Vector3D::new(0.9, 0.7, 0.9), 5.0 ));
 
-    world.objects.push(
-        Box::new(
-            Triangle::new(
-                Vector3D::new( 0.0, 0.0, -5.0),
-                Vector3D::new( 5.0, 0.0, 5.0),
-                Vector3D::new(-5.0, 0.0, 5.0),
-                1
-            )
-        )
-    );
+    let mesh = load_obj(fs::read_to_string("./cube.obj").unwrap(), 3);
 
-    // world.lights.push(PointLight::new( Vector3D::new(-2.0, 5.0, 0.0), Vector3D::new(0.2, 0.1, 0.1) ));
-
-    let size: isize = 1;
-
-    for sx in -size..size {
-        for sy in -size..size {
-            world.objects.push(
-                Box::new(
-                    Sphere::new(
-                        Vector3D::new(
-                            sx as f32 * 2.0 + 0.5,
-                            3.0,
-                            sy as f32 * 2.0 + 0.5
-                        ),0.25, 4
-                    )
-                )
-            );
-        }
-    }
-    let size: isize = 2;
-
-    for sx in -size..size {
-        for sy in -size..size {
-            world.objects.push(
-                Box::new(
-                    Sphere::new(
-                        Vector3D::new(
-                            sx as f32 + 0.5,
-                            1.0,
-                            sy as f32 + 0.5
-                        ), 0.5, if (sx + sy) % 2 != 0 {3} else {2}
-                    )
-                )
-            );
-        }
-    }
+    world.objects = mesh.triangles;
 
     // Stats
     let mut finised = false;
@@ -204,7 +155,7 @@ fn main() {
                 let film_plane_point = camera.screen_point_to_projection_plane(i, WIDTH, j, HEIGHT);
 
                 // Sample rays
-                let samples: u32 = 2;
+                let samples: u32 = 32;
                 let single_color_contribution: f32 = 1.0 / samples as f32;
 
                 // Initialize the pixel color
@@ -228,7 +179,7 @@ fn main() {
                     let direction = vec_normalize(&vec_sub(&sample_film_plane_point, &camera.position));
                     let line: Line = Line::new(camera.position, direction);
 
-                    let (trace_color, bounces) = trace(&world, &line, 32);
+                    let (trace_color, bounces) = trace(&world, &line, 16);
 
                     num_rays += bounces as u64;
                     if bounces == 0 {

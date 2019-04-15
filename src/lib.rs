@@ -2,6 +2,7 @@ pub mod vector3d;
 pub mod color;
 pub mod geometry;
 pub mod camera;
+pub mod loaders;
 
 use std::f32;
 
@@ -12,7 +13,7 @@ use vector3d::{
 };
 
 use geometry::{
-    Line, Sphere, Plane, Intersect
+    Line, Sphere, Plane, Intersect, Triangle
 };
 
 use color::{Material};
@@ -44,7 +45,7 @@ pub struct World {
     pub planes:  Vec<Plane>,
     pub shperes: Vec<Sphere>,
 
-    pub objects: Vec<Box<Intersect>>,
+    pub objects: Vec<Triangle>,
 
     pub lights: Vec<PointLight>
 }
