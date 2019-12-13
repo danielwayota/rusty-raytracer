@@ -3,7 +3,7 @@ use crate::vector3d::{
     vec_sub, vec_sum, vec_multiplication,
     vec_normalize, vec_cross
 };
-
+#[derive(Clone, Copy)]
 pub struct Camera {
     pub position: Vector3D,
     pub look_direction: Vector3D,
@@ -22,9 +22,9 @@ macro_rules! screen_to_percent {
 impl Camera {
     /**
      * Camera default contructor.
-     * 
+     *
      * @param {Vector3D} pos The camera position in space.
-     * @param 
+     * @param
      */
     pub fn new (pos: Vector3D, target: Vector3D, plane_t: f32) -> Camera {
         let camera_dir: Vector3D = vec_normalize(&vec_sub(&target, &pos));
@@ -49,12 +49,12 @@ impl Camera {
 
     /**
      * Converts the screen point in a world space coordinate in the projection plane
-     * 
+     *
      * @param {usize} x
      * @param {usize} width
      * @param {usize} y
      * @param {usize} height
-     * 
+     *
      * @return {Vector3D}
      */
     pub fn screen_point_to_projection_plane(&self, x: usize, width: usize, y: usize, height: usize) -> Vector3D {

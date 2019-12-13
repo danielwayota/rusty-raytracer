@@ -38,7 +38,7 @@ impl Line {
 // ================================================
 // Plane implementation
 // ================================================
-
+#[derive(Clone, Copy)]
 pub struct Plane {
     pub normal: Vector3D,
     pub point: Vector3D
@@ -53,9 +53,9 @@ impl Plane {
 impl Intersect for Plane {
     /**
      * Checks the intersection point on the given line and plane
-     * 
+     *
      * @param {Line} line
-     * 
+     *
      * @return {Option<f32>} The 't' line offset value or None.
      */
     fn intersects(&self, line: &Line) -> Option<f32> {
@@ -86,7 +86,7 @@ impl Intersect for Plane {
 // ================================================
 // Sphere implementation
 // ================================================
-
+#[derive(Clone, Copy)]
 pub struct Sphere {
     pub origin: Vector3D,
     pub radius: f32,
@@ -103,11 +103,11 @@ impl Sphere {
 impl Intersect for Sphere {
     /**
      * Checks the intersection of the given line and the sphere.
-     * 
+     *
      * @param Line line
-     * 
+     *
      * @return {Option<f32>} The 't' line offset value or None.
-     */ 
+     */
     fn intersects(&self, line: &Line) -> Option<f32> {
         // Quadratic ecuation
         // -b +- SQRT( b*b -4*a*c ) / 2*a
@@ -159,6 +159,7 @@ impl Intersect for Sphere {
 // Triangle implementation
 // ================================================
 
+#[derive(Clone, Copy)]
 pub struct Triangle {
     pub a: Vector3D,
     pub b: Vector3D,

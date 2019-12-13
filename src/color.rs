@@ -1,5 +1,6 @@
 use crate::vector3d::Vector3D;
 
+#[derive(Clone, Copy)]
 pub struct Material {
     pub base_color: Vector3D,
     pub emision_color: Vector3D,
@@ -28,11 +29,11 @@ impl Material {
 
 /**
  * Converts three bytes in a color in linear color space.
- * 
+ *
  * @param {u8} r
  * @param {u8} g
  * @param {u8} b
- * 
+ *
  * @return {Vector3D}
  */
 pub fn float_color_from_bytes(r: u8, g: u8, b: u8) -> Vector3D {
@@ -44,7 +45,7 @@ pub fn float_color_from_bytes(r: u8, g: u8, b: u8) -> Vector3D {
 }
 /**
  * Converts a floating point RBG color to 32bit integer.
- * 
+ *
  * @param {Vector3D} c The floating point color
  * @return {u32} 32bit color
  */
@@ -58,7 +59,7 @@ pub fn color_to_u32(c: &Vector3D) -> u32 {
 
 /**
  * Converts a linear color to the sRBG color space.
- * 
+ *
  * @param {Vector3D} color
  * @return {Vector3D} Color in sRBG color space.
  */
@@ -72,9 +73,9 @@ pub fn linear_color_to_srgb(color: &Vector3D) -> Vector3D {
 
 /**
  * Uses the linear to sRBG formula to a single value
- * 
+ *
  * @param {f32} input
- * 
+ *
  * @return {f32}
  */
 fn gamma_correct(input: f32) -> f32 {

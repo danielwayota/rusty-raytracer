@@ -18,7 +18,7 @@ use geometry::{
 
 use color::{Material};
 
-
+#[derive(Clone, Copy)]
 pub struct PointLight {
     pub position: Vector3D,
     pub color: Vector3D,
@@ -39,6 +39,7 @@ impl PointLight {
 /**
  * World struct
  */
+#[derive(Clone)]
 pub struct World {
     pub materials: Vec<Material>,
 
@@ -122,7 +123,7 @@ pub fn trace(world: &World, line: &Line, max_bounces: u32) -> (Vector3D, u32) {
 
             for light in world.lights.iter() {
                 let point_to_light = vec_normalize(&vec_sub(&light.position, &next_origin));
-                
+
                 let mut coeficient: f32= 1.0;
                 coeficient += vec_dot(
                     &next_normal,
