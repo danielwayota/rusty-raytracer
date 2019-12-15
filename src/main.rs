@@ -126,7 +126,7 @@ fn main() {
     world.lights.push(PointLight::new( Vector3D::new(2.0, 5.0, 0.0), Vector3D::new(0.9, 0.9, 0.9), 5.0 ));
     world.lights.push(PointLight::new( Vector3D::new(-2.0, 5.0, 0.0), Vector3D::new(0.9, 0.7, 0.9), 5.0 ));
 
-    let mesh = load_obj(fs::read_to_string("./complex.obj").unwrap(), 3);
+    let mesh = load_obj(fs::read_to_string("./test.obj").unwrap(), 3);
 
     world.objects = mesh.triangles;
 
@@ -139,7 +139,7 @@ fn main() {
     // --------------------------------------
     // Multithread stuff
     // --------------------------------------
-    let slice_count = 64;
+    let slice_count = 256;
     let buffer_length = buffer.len();
     // Get the slice size.
     let thread_buffer_length = buffer_length / slice_count;
@@ -165,7 +165,7 @@ fn main() {
     let world_arc = Arc::new(world);
 
     // Create four threads
-    let max_thread_count = 8;
+    let max_thread_count = 4;
 
     let thread_counter_arc = Arc::new(Mutex::from(max_thread_count));
 
