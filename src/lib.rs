@@ -119,7 +119,7 @@ pub fn trace(world: &World, line: &Line, max_bounces: u32) -> (Vector3D, u32) {
             // Light stuff
             // --------------------------------------
 
-            let mut light_contribs: Vec<(f32, Vector3D)> = Vec::new();
+            let mut light_contribs: Vec<(f32, Vector3D)> = Vec::with_capacity(world.lights.len());
 
             for light in world.lights.iter() {
                 let point_to_light = vec_normalize(&vec_sub(&light.position, &next_origin));
@@ -199,6 +199,7 @@ pub fn trace(world: &World, line: &Line, max_bounces: u32) -> (Vector3D, u32) {
         }
     }
 
+    // Clamp the colour length
     if vec_get_length(&result_color) > 1.73 {
         result_color = vec_multiplication(&vec_normalize(&result_color), 1.73);
     }

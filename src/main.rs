@@ -126,7 +126,7 @@ fn main() {
     world.lights.push(PointLight::new( Vector3D::new(2.0, 5.0, 0.0), Vector3D::new(0.9, 0.9, 0.9), 5.0 ));
     world.lights.push(PointLight::new( Vector3D::new(-2.0, 5.0, 0.0), Vector3D::new(0.9, 0.7, 0.9), 5.0 ));
 
-    let mesh = load_obj(fs::read_to_string("./test.obj").unwrap(), 3);
+    let mesh = load_obj(fs::read_to_string("./cube.obj").unwrap(), 3);
 
     world.objects = mesh.triangles;
 
@@ -279,22 +279,25 @@ fn main() {
             }
         });
 
+        let mut should_redraw = false;
         if !finised {
+            let mut message_count = 0;
+
             // Retrieve the thread results.
-            for _ in 0..8 {
-                match receiver.try_recv() {
-                    Ok(list) => {
-                        for value in list.iter() {
-                            buffer[value.0] = color_to_u32(&value.1);
-                            float_buffer[value.0] = value.1;
-                        }
-                    },
-                    Err(_) => {}
+            // Iterate over the full message list generated since the last iteration.
+            for message in receiver.try_iter() {
+                for value in message.iter() {
+                    buffer[value.0] = color_to_u32(&value.1);
+                    float_buffer[value.0] = value.1;
                 }
+
+                message_count += 1;
             }
 
-            let counter = thread_counter_arc.lock().unwrap();
-            if *counter <= 0 {
+            should_redraw = message_count != 0;
+
+            let active_threads = thread_counter_arc.lock().unwrap();
+            if *active_threads <= 0 && message_count == 0 {
                 finised = true;
 
                 let num_rays = num_rays_arc.lock().unwrap();
@@ -303,11 +306,14 @@ fn main() {
 
                 println!("Time elapsed: {}ms", time.elapsed().as_millis());
             }
-            drop(counter);
+            drop(active_threads);
         }
 
-        window.update_with_buffer(&buffer).unwrap();
-
-        thread::sleep(Duration::from_millis(33));
+        if should_redraw {
+            window.update_with_buffer(&buffer).unwrap();
+        } else {
+            window.update();
+        }
+        thread::sleep(Duration::from_millis(10));
     }
 }
